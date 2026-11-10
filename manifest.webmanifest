@@ -1,0 +1,10 @@
+{
+  "name": "My Household Budget",
+  "short_name": "Household Budget",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f3f6f5",
+  "theme_color": "#123b35",
+  "description": "Private household budget and 12-month cashflow forecast",
+  "icons": []
+}
