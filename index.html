@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#123b35">
+<meta name="description" content="Private household budget and 12-month cashflow forecast">
+<link rel="manifest" href="manifest.webmanifest">
+<title>My Household Budget</title>
+<style>
+:root{--bg:#f3f6f5;--card:#fff;--ink:#172522;--muted:#65736f;--green:#176b53;--green2:#e4f2ec;--red:#b43d3d;--line:#e1e8e5;--amber:#95630b}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+header{background:#123b35;color:#fff;padding:20px 18px 18px;position:sticky;top:0;z-index:5}
+header .sub{font-size:12px;opacity:.75}header h1{font-size:21px;margin:2px 0 0}
+main{max-width:760px;margin:auto;padding:16px 14px 90px}.tabs{display:flex;gap:7px;overflow:auto;padding:10px 14px;background:#123b35;position:sticky;top:76px;z-index:4}
+.tabs button{border:1px solid #6e8b84;background:transparent;color:#fff;border-radius:20px;padding:8px 13px;white-space:nowrap;font-size:13px}
+.tabs button.active{background:#fff;color:#123b35;border-color:#fff;font-weight:700}
+h2{font-size:18px;margin:6px 0 12px}h3{font-size:15px;margin:0 0 8px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:15px;margin:0 0 12px;box-shadow:0 2px 8px #102b2410}
+.balance{font-size:34px;font-weight:750;letter-spacing:-1px;margin:3px 0 10px}.positive{color:var(--green)}.negative{color:var(--red)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.metric{background:#f5f8f7;border-radius:12px;padding:11px}.metric small{display:block;color:var(--muted);font-size:12px}.metric strong{font-size:18px;display:block;margin-top:3px}
+.row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}.row:last-child{border:0}
+.muted{color:var(--muted);font-size:12px}.amount{font-weight:700;white-space:nowrap}
+button,.btn{font:inherit;cursor:pointer}.primary{background:var(--green);color:white;border:0;border-radius:10px;padding:11px 14px;font-weight:650}.secondary{background:var(--green2);color:var(--green);border:0;border-radius:10px;padding:9px 12px;font-weight:650}.danger{background:#fff0f0;color:var(--red);border:1px solid #f0cccc;border-radius:10px;padding:8px 10px}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+label{display:block;font-size:12px;color:var(--muted);margin:10px 0 5px}input,select{width:100%;padding:11px;border:1px solid #cfdad5;border-radius:9px;background:#fff;color:var(--ink);font:inherit}input[type=checkbox]{width:auto}
+.formgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.full{grid-column:1/-1}
+.item-title{font-weight:650}.tag{font-size:11px;background:#eef3f1;color:#52645e;border-radius:20px;padding:3px 8px}
+.hidden{display:none!important}.notice{background:#fff7e6;border:1px solid #f1dfb4;color:#77530c;padding:11px;border-radius:12px;font-size:13px;margin-bottom:12px}
+.bar{height:9px;background:#e7eeeb;border-radius:10px;overflow:hidden;margin-top:8px}.bar span{display:block;height:100%;background:#3b9475}
+.month{padding:12px 0;border-bottom:1px solid var(--line)}.month:last-child{border:0}.monthtop{display:flex;justify-content:space-between;gap:10px}.dayrow{display:flex;justify-content:space-between;gap:10px;padding:8px 4px;border-bottom:1px solid #edf1ef;font-size:13px}.dayrow:last-child{border:0}.dayrow.alert{background:#fff0f0;color:var(--red);border-radius:7px}.dayrow .daymeta{color:var(--muted);font-size:11px}.daybalance{font-weight:700;white-space:nowrap}details.monthdetail{margin-top:8px}details.monthdetail summary{cursor:pointer;color:var(--green);font-size:12px;font-weight:650;padding:7px 0}
+small{color:var(--muted)}footer{text-align:center;color:var(--muted);font-size:11px;padding:18px}
+dialog{border:0;border-radius:18px;width:min(94%,520px);padding:18px;box-shadow:0 20px 70px #0004}dialog::backdrop{background:#0b211dcc}
+@media(min-width:620px){main{padding-top:22px}.balance{font-size:40px}}
+</style>
+</head>
+<body>
+<header><div class="sub">PRIVATE • STORED ON THIS DEVICE</div><h1>My Household Budget</h1></header>
+<nav class="tabs" id="tabs">
+<button class="active" data-tab="dashboard">Overview</button><button data-tab="regular">Income & bills</button><button data-tab="spending">Spending</button><button data-tab="forecast">12-month forecast</button><button data-tab="settings">Backup</button>
+</nav>
+<main>
+<section id="dashboard">
+<h2>Financial overview</h2>
+<div class="card">
+<div class="muted">Current available balance</div><div class="balance" id="currentBalance">£0.00</div>
+<div class="grid"><div class="metric"><small>Income this month</small><strong id="monthIncome">£0.00</strong></div><div class="metric"><small>Outgoings this month</small><strong id="monthOut">£0.00</strong></div></div>
+</div>
+<div class="card"><h3>Expected month-end balance</h3><div class="balance positive" id="monthEnd">£0.00</div><div class="muted" id="monthEndNote">Based on your regular items and recorded spending.</div></div>
+<div class="card"><h3>Next 30 days</h3><div id="upcoming"></div></div>
+<div class="card"><h3>Budget health</h3><div class="row"><span>Monthly income</span><b id="dashIncome">£0.00</b></div><div class="row"><span>Regular bills and commitments</span><b id="dashBills">£0.00</b></div><div class="row"><span>Left after regular commitments</span><b id="dashLeft">£0.00</b></div><div class="muted">Add your real figures under Income & bills. The sample screen starts empty.</div></div>
+</section>
+
+<section id="regular" class="hidden">
+<h2>Income & regular bills</h2><p class="muted">Add an item once. It will repeat automatically according to its frequency. You can edit or pause it whenever you need.</p>
+<div class="actions"><button class="primary" onclick="openItem('income')">＋ Add income</button><button class="secondary" onclick="openItem('expense')">＋ Add bill / outgoing</button></div>
+<div class="card"><h3>Income</h3><div id="incomeList"></div></div>
+<div class="card"><h3>Bills & regular outgoings</h3><div id="expenseList"></div></div>
+</section>
+
+<section id="spending" class="hidden">
+<h2>Spending & one-off adjustments</h2><p class="muted">Record variable spending, unexpected costs or one-off income. Entries can be edited or deleted.</p>
+<div class="card"><button class="primary" onclick="openTransaction()">＋ Add transaction</button><div id="transactionList"></div></div>
+</section>
+
+<section id="forecast" class="hidden">
+<h2>12-month cashflow forecast</h2><div class="card"><div class="muted">Forecast starting balance</div><div class="balance" id="forecastStart">£0.00</div><div class="muted">Each month includes recurring items and transactions dated within that month.</div></div>
+<div class="card"><div id="forecastList"></div></div>
+</section>
+
+<section id="settings" class="hidden">
+<h2>Starting balance & backup</h2>
+<div class="card">
+<label for="opening">Current bank balance (£)</label><input id="opening" type="number" step="0.01" inputmode="decimal" placeholder="e.g. 1250.00">
+<label for="startDate">Forecast start date</label><input id="startDate" type="date">
+<label for="threshold">Low-balance warning threshold (£)</label><input id="threshold" type="number" step="0.01" inputmode="decimal" placeholder="e.g. 100">
+<button class="primary" onclick="saveSettings()">Save settings</button>
+</div>
+<div class="card"><h3>Back up your information</h3><p class="muted">Your budget is stored on this device. Export a backup regularly, especially before changing phones or clearing browser data.</p><div class="actions"><button class="secondary" onclick="exportBackup()">Export backup</button><label class="secondary" style="display:inline-block;margin:0">Import backup<input type="file" accept="application/json" onchange="importBackup(event)" hidden></label><button class="secondary" onclick="exportCSV()">Export transactions CSV</button></div></div>
+<div class="notice">Privacy: this app does not connect to your bank or send your figures to a server. Anyone with access to this browser profile may be able to view the information, so protect your phone with its screen lock.</div>
+<button class="danger" onclick="resetAll()">Delete all app data</button>
+</section>
+<footer>My Household Budget • Offline-first personal cashflow planner</footer>
+</main>
+
+<dialog id="itemDialog"><form method="dialog" id="itemForm">
+<h2 id="itemHeading">Add item</h2><input type="hidden" id="itemId"><input type="hidden" id="itemType">
+<div class="formgrid">
+<div class="full"><label>Description</label><input id="itemName" required placeholder="e.g. Rent, wages, electricity"></div>
+<div><label>Amount (£)</label><input id="itemAmount" type="number" min="0.01" step="0.01" inputmode="decimal" required></div>
+<div><label>Frequency</label><select id="itemFreq"><option value="weekly">Weekly</option><option value="fortnightly">Fortnightly</option><option value="fourweekly">Every 4 weeks</option><option value="monthly" selected>Monthly</option><option value="quarterly">Quarterly</option><option value="yearly">Yearly</option><option value="once">One-off</option></select></div>
+<div><label>First / next date</label><input id="itemDate" type="date" required></div>
+<div><label>Category</label><select id="itemCategory"><option>Income</option><option>Housing</option><option>Utilities</option><option>Food</option><option>Transport</option><option>Insurance</option><option>Debt</option><option>Subscriptions</option><option>Health</option><option>Leisure</option><option>Other</option></select></div>
+<div class="full"><label><input id="itemActive" type="checkbox" checked> Active (include in forecast)</label></div>
+</div><div class="actions"><button class="primary" type="button" onclick="saveItem()">Save item</button><button class="secondary" type="button" onclick="itemDialog.close()">Cancel</button></div>
+</form></dialog>
+
+<dialog id="txDialog"><form method="dialog">
+<h2 id="txHeading">Add transaction</h2><input type="hidden" id="txId">
+<label>Description</label><input id="txName" required placeholder="e.g. Supermarket">
+<div class="formgrid"><div><label>Amount (£)</label><input id="txAmount" type="number" min="0.01" step="0.01" required></div><div><label>Type</label><select id="txType"><option value="expense">Outgoing</option><option value="income">Income</option></select></div><div><label>Date</label><input id="txDate" type="date" required></div><div><label>Category</label><select id="txCategory"><option>Food</option><option>Transport</option><option>Housing</option><option>Utilities</option><option>Insurance</option><option>Health</option><option>Leisure</option><option>Other</option></select></div></div>
+<div class="actions"><button class="primary" type="button" onclick="saveTransaction()">Save transaction</button><button class="secondary" type="button" onclick="txDialog.close()">Cancel</button></div>
+</form></dialog>
+
+<script>
+const KEY='householdBudgetV1';
+const today=()=>new Date().toISOString().slice(0,10);
+const money=n=>new Intl.NumberFormat('en-GB',{style:'currency',currency:'GBP'}).format(Number(n)||0);
+const dateObj=s=>new Date(s+'T12:00:00');
+const dateStr=d=>{let x=new Date(d);return x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')+'-'+String(x.getDate()).padStart(2,'0')};
+const addMonths=(date,n)=>{let d=dateObj(date),day=d.getDate();d.setDate(1);d.setMonth(d.getMonth()+n);let last=new Date(d.getFullYear(),d.getMonth()+1,0).getDate();d.setDate(Math.min(day,last));return dateStr(d)};
+let data=load();
+function load(){try{return JSON.parse(localStorage.getItem(KEY))||{balance:0,start:today(),items:[],transactions:[]}}catch(e){return {balance:0,start:today(),items:[],transactions:[]}}}
+function persist(){localStorage.setItem(KEY,JSON.stringify(data));render()}
+function id(){return Math.random().toString(36).slice(2,10)}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function monthKey(d){return d.slice(0,7)}
+function nextDates(item,from,to){let out=[],d=item.date,guard=0;while(d<from&&guard++<500){d=nextDate(item,d)}guard=0;while(d<=to&&guard++<500){if(d>=from)out.push(d);if(item.freq==='once')break;d=nextDate(item,d)}return out}
+function nextDate(item,d){if(item.freq==='weekly')return dateStr(new Date(dateObj(d).getTime()+7*86400000));if(item.freq==='fortnightly')return dateStr(new Date(dateObj(d).getTime()+14*86400000));if(item.freq==='fourweekly')return dateStr(new Date(dateObj(d).getTime()+28*86400000));if(item.freq==='monthly')return addMonths(d,1);if(item.freq==='quarterly')return addMonths(d,3);if(item.freq==='yearly')return addMonths(d,12);return '9999-12-31'}
+function occurrences(from,to){let arr=[];for(const it of data.items.filter(x=>x.active)){for(const d of nextDates(it,from,to))arr.push({date:d,name:it.name,amount:+it.amount,type:it.type,category:it.category,source:'regular',id:it.id})}for(const t of data.transactions.filter(x=>x.date>=from&&x.date<=to))arr.push({...t,source:'transaction'});return arr.sort((a,b)=>a.date.localeCompare(b.date))}
+function signed(x){return x.type==='income'?x.amount:-x.amount}
+function endOfMonth(s){let d=dateObj(s);return dateStr(new Date(d.getFullYear(),d.getMonth()+1,0))}
+function monthSummary(start,end){let ev=occurrences(start,end),inc=0,out=0;ev.forEach(x=>x.type==='income'?inc+=+x.amount:out+=+x.amount);return {inc,out,net:inc-out,events:ev}}
+function render(){
+ document.getElementById('opening').value=data.balance??0;document.getElementById('startDate').value=data.start||today();document.getElementById('threshold').value=data.threshold??100;
+ const start=data.start||today(), monthEnd=endOfMonth(start), m=monthSummary(start,monthEnd);
+ const balance=+data.balance||0;let monthClosing=balance+m.net;
+ document.getElementById('currentBalance').textContent=money(balance);
+ document.getElementById('currentBalance').className='balance '+(balance<0?'negative':'positive');
+ document.getElementById('monthIncome').textContent=money(m.inc);document.getElementById('monthOut').textContent=money(m.out);
+ document.getElementById('monthEnd').textContent=money(monthClosing);document.getElementById('monthEnd').className='balance '+(monthClosing<0?'negative':'positive');
+ document.getElementById('dashIncome').textContent=money(m.inc);document.getElementById('dashBills').textContent=money(data.items.filter(x=>x.active&&x.type==='expense').reduce((a,x)=>a+monthlyEquivalent(x),0));
+ let monthlyInc=data.items.filter(x=>x.active&&x.type==='income').reduce((a,x)=>a+monthlyEquivalent(x),0);
+ let monthlyOut=data.items.filter(x=>x.active&&x.type==='expense').reduce((a,x)=>a+monthlyEquivalent(x),0);
+ document.getElementById('dashLeft').textContent=money(monthlyInc-monthlyOut);
+ const end30=dateStr(new Date(dateObj(start).getTime()+30*86400000));
+ let soon=occurrences(start,end30).slice(0,12);
+ document.getElementById('upcoming').innerHTML=soon.length?soon.map(x=>`<div class="row"><div><div class="item-title">${esc(x.name)}</div><div class="muted">${x.date} · ${x.type==='income'?'Income':'Outgoing'}</div></div><span class="amount ${x.type==='income'?'positive':'negative'}">${x.type==='income'?'+':'−'}${money(x.amount)}</span></div>`).join(''):'<p class="muted">No payments due in the next 30 days. Add your regular income and bills to get started.</p>';
+ document.getElementById('incomeList').innerHTML=listItems('income');document.getElementById('expenseList').innerHTML=listItems('expense');
+ document.getElementById('transactionList').innerHTML=data.transactions.slice().sort((a,b)=>b.date.localeCompare(a.date)).map(t=>`<div class="row"><div><div class="item-title">${esc(t.name)}</div><div class="muted">${t.date} · ${esc(t.category)}</div></div><div style="text-align:right"><div class="amount ${t.type==='income'?'positive':'negative'}">${t.type==='income'?'+':'−'}${money(t.amount)}</div><div class="actions" style="justify-content:flex-end;margin-top:5px"><button class="secondary" onclick="editTransaction('${t.id}')">Edit</button><button class="danger" onclick="deleteTransaction('${t.id}')">Delete</button></div></div></div>`).join('')||'<p class="muted">No manual transactions recorded yet.</p>';
+ renderForecast();
+}
+function monthlyEquivalent(x){let a=+x.amount;return a*({weekly:52/12,fortnightly:26/12,fourweekly:13/12,monthly:1,quarterly:1/3,yearly:1/12,once:0}[x.freq]||0)}
+function listItems(type){let items=data.items.filter(x=>x.type===type);return items.map(x=>`<div class="row"><div style="min-width:0"><div class="item-title">${esc(x.name)} ${x.active?'':'<span class="tag">Paused</span>'}</div><div class="muted">${money(x.amount)} · ${x.freq} · next ${x.date}</div></div><div style="display:flex;gap:5px"><button class="secondary" onclick="editItem('${x.id}')">Edit</button><button class="danger" onclick="deleteItem('${x.id}')">×</button></div></div>`).join('')||'<p class="muted">Nothing added yet.</p>'}
+function renderForecast(){
+ let start=data.start||today(), balance=+data.balance||0, threshold=Number(data.threshold??100);
+ document.getElementById('forecastStart').textContent=money(balance);
+ const end=dateStr(new Date(dateObj(addMonths(start,12)).getTime()-86400000));
+ const events=occurrences(start,end), byDay={};
+ events.forEach(ev=>(byDay[ev.date]||(byDay[ev.date]=[])).push(ev));
+ let html='';
+ for(let i=0;i<12;i++){
+  let monthStart=addMonths(start,i), monthEnd=dateStr(new Date(dateObj(addMonths(start,i+1)).getTime()-86400000));
+  if(i===0)monthStart=start; if(monthEnd>end)monthEnd=end;
+  let d=monthStart, inc=0,out=0,lowest=Infinity,daysHtml='';
+  while(d<=monthEnd){
+   let dayEvents=byDay[d]||[], dayInc=0,dayOut=0;
+   dayEvents.forEach(ev=>{if(ev.type==='income'){dayInc+=+ev.amount;inc+=+ev.amount}else{dayOut+=+ev.amount;out+=+ev.amount}});
+   balance+=dayInc-dayOut;lowest=Math.min(lowest,balance);
+   let label=dateObj(d).toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'});
+   let detail=dayEvents.length?dayEvents.map(ev=>`${esc(ev.name)} ${ev.type==='income'?'+':'−'}${money(ev.amount)}`).join(' · '):'No scheduled transactions';
+   let alert=balance<threshold;
+   daysHtml+=`<div class="dayrow ${alert?'alert':''}"><div style="min-width:0"><div>${label} ${alert?'⚠':''}</div><div class="daymeta">${detail}</div></div><div class="daybalance">${money(balance)}</div></div>`;
+   d=dateStr(new Date(dateObj(d).getTime()+86400000));
+  }
+  let net=inc-out,label=dateObj(monthStart).toLocaleDateString('en-GB',{month:'long',year:'numeric'});
+  html+=`<div class="month"><div class="monthtop"><b>${label}</b><b class="${balance<threshold?'negative':'positive'}">${money(balance)}</b></div><div class="muted">Income ${money(inc)} · Outgoings ${money(out)} · Net ${money(net)} · Lowest ${money(lowest)}</div><details class="monthdetail" ${i===0?'open':''}><summary>Show daily balances and payments</summary>${daysHtml}</details></div>`;
+ }
+ document.getElementById('forecastList').innerHTML=html;
+}
+document.getElementById('tabs').addEventListener('click',e=>{let b=e.target.closest('button[data-tab]');if(!b)return;document.querySelectorAll('.tabs button').forEach(x=>x.classList.toggle('active',x===b));document.querySelectorAll('main section').forEach(x=>x.classList.toggle('hidden',x.id!==b.dataset.tab))});
+function openItem(type){document.getElementById('itemForm').reset();document.getElementById('itemId').value='';document.getElementById('itemType').value=type;document.getElementById('itemHeading').textContent=type==='income'?'Add income':'Add bill / outgoing';document.getElementById('itemDate').value=data.start||today();document.getElementById('itemCategory').value=type==='income'?'Income':'Other';document.getElementById('itemDialog').showModal()}
+function editItem(id){let x=data.items.find(y=>y.id===id);if(!x)return;openItem(x.type);document.getElementById('itemId').value=x.id;document.getElementById('itemName').value=x.name;document.getElementById('itemAmount').value=x.amount;document.getElementById('itemFreq').value=x.freq;document.getElementById('itemDate').value=x.date;document.getElementById('itemCategory').value=x.category;document.getElementById('itemActive').checked=x.active}
+function saveItem(){let idv=document.getElementById('itemId').value;let x={id:idv||id(),type:document.getElementById('itemType').value,name:document.getElementById('itemName').value.trim(),amount:+document.getElementById('itemAmount').value,freq:document.getElementById('itemFreq').value,date:document.getElementById('itemDate').value,category:document.getElementById('itemCategory').value,active:document.getElementById('itemActive').checked};if(!x.name||!x.date||x.amount<=0)return alert('Please enter a description, amount and date.');let i=data.items.findIndex(y=>y.id===idv);if(i>=0)data.items[i]=x;else data.items.push(x);document.getElementById('itemDialog').close();persist()}
+function deleteItem(idv){if(confirm('Delete this regular item?')){data.items=data.items.filter(x=>x.id!==idv);persist()}}
+function openTransaction(){document.getElementById('txId').value='';document.getElementById('txHeading').textContent='Add transaction';document.getElementById('txName').value='';document.getElementById('txAmount').value='';document.getElementById('txType').value='expense';document.getElementById('txDate').value=today();document.getElementById('txDialog').showModal()}
+function editTransaction(idv){let t=data.transactions.find(x=>x.id===idv);if(!t)return;openTransaction();document.getElementById('txHeading').textContent='Edit transaction';document.getElementById('txId').value=t.id;document.getElementById('txName').value=t.name;document.getElementById('txAmount').value=t.amount;document.getElementById('txType').value=t.type;document.getElementById('txDate').value=t.date;document.getElementById('txCategory').value=t.category}
+function saveTransaction(){let idv=document.getElementById('txId').value,t={id:idv||id(),name:document.getElementById('txName').value.trim(),amount:+document.getElementById('txAmount').value,type:document.getElementById('txType').value,date:document.getElementById('txDate').value,category:document.getElementById('txCategory').value};if(!t.name||!t.date||t.amount<=0)return alert('Please enter a description, amount and date.');let i=data.transactions.findIndex(x=>x.id===idv);if(i>=0)data.transactions[i]=t;else data.transactions.push(t);document.getElementById('txDialog').close();persist()}
+function deleteTransaction(idv){if(confirm('Delete this transaction?')){data.transactions=data.transactions.filter(x=>x.id!==idv);persist()}}
+function saveSettings(){data.balance=+document.getElementById('opening').value||0;data.start=document.getElementById('startDate').value||today();data.threshold=+document.getElementById('threshold').value||0;persist();alert('Settings saved.')}
+function download(name,content,type){let a=document.createElement('a'),u=URL.createObjectURL(new Blob([content],{type}));a.href=u;a.download=name;a.click();URL.revokeObjectURL(u)}
+function exportBackup(){download('household-budget-backup.json',JSON.stringify(data,null,2),'application/json')}
+function importBackup(e){let f=e.target.files[0];if(!f)return;let r=new FileReader();r.onload=()=>{try{let x=JSON.parse(r.result);if(!Array.isArray(x.items)||!Array.isArray(x.transactions))throw Error();data=x;persist();alert('Backup imported.')}catch(err){alert('That backup file could not be read.')}};r.readAsText(f)}
+function exportCSV(){let rows=[['Date','Description','Type','Category','Amount'],...data.transactions.map(t=>[t.date,t.name,t.type,t.category,t.amount])];download('household-transactions.csv',rows.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\n'),'text/csv')}
+function resetAll(){if(confirm('Permanently delete all budget information stored in this browser? Export a backup first if you may need it.')){localStorage.removeItem(KEY);data=load();render()}}
+render();
+if('serviceWorker' in navigator && location.protocol.startsWith('http'))navigator.serviceWorker.register('./sw.js').catch(()=>{});
+</script>
+</body></html>
